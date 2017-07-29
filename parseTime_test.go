@@ -19,3 +19,12 @@ func TestParseTime(t *testing.T) {
 		t.Errorf("Time not parsed correctly, got: %s, want: %s.", result, wanted)
 	}
 }
+
+func BenchmarkParseTime(b *testing.B) {
+
+	message := []byte{0x24, 0x4b, 0xbb, 0x9a, 0xc9, 0xf0}
+
+	for n := 0; n < b.N; n++ {
+		parseTime(message)
+	}
+}

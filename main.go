@@ -7,8 +7,10 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"github.com/quipo/statsd"
 	"log"
 	"net"
+	"os"
 	"time"
 )
 
@@ -19,6 +21,18 @@ var (
 func main() {
 	flag.Parse()
 
+	// StatsD
+	prefix := "go1090."
+	statsdclient := statsd.NewStatsdClient("172.16.107.114:8125", prefix)
+	err := statsdclient.CreateSocket()
+	if nil != err {
+		log.Println(err)
+		os.Exit(1)
+	}
+	interval := time.Second * 1 // aggregate stats and flush every 2 seconds
+	stats := statsd.NewStatsdBuffer(interval, statsdclient)
+	defer stats.Close()
+
 	fmt.Println("Connecting to server...")
 	conn, err := net.Dial("tcp", *addr)
 	if err != nil {
@@ -27,7 +41,8 @@ func main() {
 	messages := startAVRClient(conn)
 
 	for {
-		go parseAVRMessage(<-messages)
+		go parseAVRMessage(<-messages, stats)
+		stats.Incr("messages.total", 1)
 	}
 }
 
@@ -52,7 +67,7 @@ func startAVRClient(conn net.Conn) chan []byte {
 	return ch
 }
 
-func parseAVRMessage(message []byte) {
+func parseAVRMessage(message []byte, stats *statsd.StatsdBuffer) {
 
 	// http://wiki.modesbeast.com/Mode-S_Beast:Data_Output_Formats
 
@@ -85,13 +100,21 @@ func parseAVRMessage(message []byte) {
 	switch len(packedMessage) {
 	case 2:
 		//		fmt.Println("ModeAC")
+		stats.Incr("messages.modeac", 1)
 
 	case 7:
 		//		fmt.Println("ModeS56")
-		parseModeS(packedMessage)
+		stats.Incr("messages.modes56", 1)
+		stats.Incr("messages.modes", 1)
+
+		//parseModeS(packedMessage)
+
 	case 14:
+		stats.Incr("messages.modes112", 1)
+		stats.Incr("messages.modes", 1)
+
 		//		fmt.Println("ModeS112")
-		parseModeS(packedMessage)
+		//parseModeS(packedMessage)
 	}
 }
 

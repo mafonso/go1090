@@ -56,25 +56,43 @@ func parseAVRMessage(message []byte) {
 
 	// http://wiki.modesbeast.com/Mode-S_Beast:Data_Output_Formats
 
+	var content []byte
+
 	isMlat := message[0] == '@'
-
 	if isMlat {
-		//fmt.Println("MLAT message")
+		//		fmt.Println("MLAT message")
 		timestamp := message[1:13]
+		content = message[13 : len(message)-1]
 
+		// Pack timestamp
 		dst := make([]byte, hex.DecodedLen(len(timestamp)))
 		_, err := hex.Decode(dst, timestamp)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		otimestamp := parseTime(dst)
-		fmt.Printf("%s \t\t %s \n", otimestamp, message)
-
 	} else {
 		fmt.Println("Standard message")
+		content = message[1 : len(message)-1]
 	}
 
+	// Pack message
+	packedMessage := make([]byte, hex.DecodedLen(len(content)))
+	_, err := hex.Decode(packedMessage, content)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	switch len(packedMessage) {
+	case 2:
+		//		fmt.Println("ModeAC")
+
+	case 7:
+		//		fmt.Println("ModeS56")
+		parseModeS(packedMessage)
+	case 14:
+		//		fmt.Println("ModeS112")
+		parseModeS(packedMessage)
+	}
 }
 
 func parseTime(timebytes []byte) time.Time {

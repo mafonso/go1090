@@ -1,6 +1,19 @@
 {
 	"comment": "",
 	"ignore": "test",
-	"package": [],
+	"package": [
+		{
+			"checksumSHA1": "Uz2dfScLBJVTnESIEiPdP6f2OeY=",
+			"path": "github.com/quipo/statsd",
+			"revision": "eaafca512970e346bd4a4d223c8db72856885d35",
+			"revisionTime": "2017-08-04T16:19:48Z"
+		},
+		{
+			"checksumSHA1": "7xi4G4msRwYvyD9YgnhsuaJVYUY=",
+			"path": "github.com/quipo/statsd/event",
+			"revision": "eaafca512970e346bd4a4d223c8db72856885d35",
+			"revisionTime": "2017-08-04T16:19:48Z"
+		}
+	],
 	"rootPath": "github.com/mafonso/go1090"
 }
